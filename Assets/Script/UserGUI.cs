@@ -33,17 +33,21 @@ public class UserGUI : MonoBehaviour {
 
 			// 生命归0则结束游戏
 			if (life == 0) {
-				GUI.Label(new Rect(Screen.width / 2 - 20, Screen.width / 2 - 250, 100, 100), "游戏结束",other);
-				GUI.Label(new Rect(Screen.width / 2 - 10, Screen.width / 2 - 200, 50, 50), "得分:", scoreStyle);
-				GUI.Label(new Rect(Screen.width / 2 + 50, Screen.width / 2 - 200, 50, 50),action.ShowScore().ToString(), textStyle);
 			   _gameOver();
+			   action.gameOver();
+			   GUI.Label(new Rect(Screen.width / 2 - 20, Screen.width / 2 - 250, 100, 100), "游戏结束",other);
+			   GUI.Label(new Rect(Screen.width / 2 - 10, Screen.width / 2 - 200, 50, 50), "得分:", scoreStyle);
+			   GUI.Label(new Rect(Screen.width / 2 + 50, Screen.width / 2 - 200, 50, 50),action.ShowScore().ToString(), textStyle);
 		}
 	}
 	GUI.Label(new Rect((Screen.width-20)*0.5f, Screen.height*0.5f-100, 100, 100), "Hit UFO", other);
-	if (GUI.Button(new Rect((Screen.width-20)*0.5f, (Screen.height-50)*0.5f, 100, 50), "游戏开始")) {
-                gameStart = true;
-                action.gameStart();
-        }
+	if (!gameStart) {
+		if (GUI.Button(new Rect((Screen.width-20)*0.5f, (Screen.height-50)*0.5f, 100, 50), "游戏开始")) {
+	                gameStart = true;
+					life = 5;
+	                action.gameStart();
+	        }
+	}
 	}
 	public void MissUFO() {
 		if(life > 0)	life--;

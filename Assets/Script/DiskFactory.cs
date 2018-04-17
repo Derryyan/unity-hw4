@@ -15,8 +15,8 @@ public class DiskFactory : MonoBehaviour {
 	                disk = free[0].gameObject;
 	                free.Remove(free[0]);
 	            }
-        if(disk == null) {
-            disk = Instantiate(Resources.Load<GameObject>("Prefabs/disk"), new Vector3(0, -4, 0), Quaternion.identity);;
+        else {
+            disk = GameObject.Instantiate(Resources.Load<GameObject>("Prefabs/disk"), new Vector3(0, -4, 0), Quaternion.identity);
         }
         //添加到使用列表中
         used.Add(disk);
@@ -28,6 +28,7 @@ public class DiskFactory : MonoBehaviour {
         for(int i = 0;i < used.Count; i++) {
             if (disk.GetInstanceID() == used[i].gameObject.GetInstanceID()) {
                 used[i].gameObject.SetActive(false);
+				used[i].gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
                 free.Add(used[i]);
                 used.Remove(used[i]);
                 break;

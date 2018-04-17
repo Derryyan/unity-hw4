@@ -15,6 +15,7 @@ public class FirstController : MonoBehaviour, ISceneController, IUserAction {
     private int trial;
 	private int throwNum;
 	private float speed;
+	private float time = 0;
 	private Vector3 direction;
 	public Color[] setColor = {Color.white,Color.black,Color.yellow,Color.blue,Color.green,Color.red,};
 
@@ -32,34 +33,32 @@ public class FirstController : MonoBehaviour, ISceneController, IUserAction {
 
 	void Update () {
         if(playing) {
-			Vector3 pos = Vector3.zero;
 			if (Input.GetButtonDown("Fire1"))
 	            {
-	                pos = Input.mousePosition;
+					Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+			        RaycastHit hit;
+			            //射线打中物体
+			            if (Physics.Raycast(ray, out hit) && hit.collider.gameObject.tag == "disk") {
+			                disk_alive.Remove(hit.collider.gameObject);
+							hit.collider.gameObject.SetActive(false);
+							hit.collider.gameObject.transform.position = new Vector3(0,-9,0);
+			                //记分员记录分数
+			                scoreRecorder.Record();
+							diskFactory.resetDisk(hit.collider.gameObject);
+						}
 	            }
-	        Ray ray = Camera.main.ScreenPointToRay(pos);
-	        RaycastHit hit;
-	            //射线打中物体
-	            if (Physics.Raycast(ray, out hit) && hit.collider.gameObject.tag.Contains("Finish")) {
-	                disk_alive.Remove(hit.collider.gameObject);
-	                //记分员记录分数
-	                scoreRecorder.Record();
-					diskFactory.resetDisk(hit.collider.gameObject);
-				}
             //游戏结束
             if (round == 4) {
+				gameOver();
                 userGui._gameOver();
 				playing = false;
             }
-            //设定一个定时器，发送飞碟，游戏开始
-            if (!playing) {
-                InvokeRepeating("LoadResources", 1f, speed);
-                playing = true;
-            }
             //发送飞碟
-			InvokeRepeating("LoadResources", 1f, speed);
-
-            throwDisk();
+			time += Time.deltaTime;
+			if (time > 3) {
+				time = 0;
+				LoadResources();
+			}
         }
     }
 
@@ -70,27 +69,28 @@ public class FirstController : MonoBehaviour, ISceneController, IUserAction {
 		if (round == 3) throwNum = 3;
         for (int i = 0;i < throwNum;i++) {
 			disk_queue.Enqueue(diskFactory.GetDisk());
+			throwDisk();
 		}
     }
 
     private void throwDisk() {
-		trial++;
         if (disk_queue.Count != 0) {
+			trial++;
             GameObject disk = disk_queue.Dequeue();
             disk_alive.Add(disk);
             disk.SetActive(true);
 			int chooseColor = Random.Range(0, 5);
             disk.GetComponent<Renderer>().sharedMaterial.color = setColor[chooseColor];
-            disk.transform.position = new Vector3(Random.Range(-2.5f,2.5f), Random.Range(1f, 4f), 0);
-            direction.x = direction.x * Random.Range(-1, 1);
-            disk.GetComponent<Rigidbody>().AddForce(direction * Random.Range(speed * 5, speed * 15) / 10, ForceMode.Impulse);
+            disk.transform.position = new Vector3(Random.Range(-1f,6f), Random.Range(1f, 4f), 0);
+            direction.x = -1;
+            disk.GetComponent<Rigidbody>().AddForce(direction * Random.Range(5,10), ForceMode.Impulse);
         }
 
         for (int i = 0; i < disk_alive.Count; i++)
         {
             GameObject temp = disk_alive[i];
             //飞碟飞出摄像机视野也没被打中
-            if (temp.transform.position.y < -10 && temp.gameObject.activeSelf == true)
+            if (temp.transform.position.y < 0 && temp.gameObject.activeSelf == true)
             {
                 diskFactory.resetDisk(disk_alive[i]);
                 disk_alive.Remove(disk_alive[i]);
@@ -107,6 +107,8 @@ public class FirstController : MonoBehaviour, ISceneController, IUserAction {
    }
    public void gameStart() {
 	   playing = true;
+	   trial = 0;
+	   round = 1;
    }
    public void gameOver() {
 	   playing = false;
